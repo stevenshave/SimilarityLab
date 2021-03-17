@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block additionalcss %}
+<link href="{{url_for('static', filename='css/kekule.css')}}" rel="stylesheet">
+{% endblock %}
+
+{% block herotitle %}
+Explore/source compound
+{% endblock %}
+
+
+{% block content %}
+
+<div class="instructioncardcontainer d-flex wrapper">
+
+
+
+    <div class="molecule-drawer" , id="molecule-drawer"></div>
+    <div class="card-nohover mb-3" style="max-width: 30rem;">
+        <div class="card-body">
+            <h5 class="card-title">Explore compound</h5>
+            <p>Draw a compound to the left, or paste SMILES bellow to find the eMolecules ID, allowing commercial
+                sourcing.</p>
+            <p>A number of fundamental properties are also predicted and returned, along with a low energy 3D
+                conformer.</p>
+        </div>
+    </div>
+</div>
+<div class="cardcontainer v-flex wrapper">
+    <div class="form-group">
+        <label for="molsmiles">SMILES (Automatically generated from above 2D)</label>
+        <input type="text" class="form-control" id="molsmiles" placeholder="You can also paste smiles here">
+        <button class="btn btn-primary" onclick="exploreCompound()">Source/explore compound</button>
+    </div>
+</div>
+<!-- <div id="composer" style="width:600px;height:400px" data-widget="Kekule.Editor.Composer"
+        data-chem-obj="url(#molecule)"></div> -->
+
+
+
+<!-- Option 1: Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
+
+<script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/sl_drawer.js')}}"></script>
+
+
+{% endblock %}

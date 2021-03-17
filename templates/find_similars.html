@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block additionalcss %}
+<link href="{{url_for('static', filename='css/kekule.css')}}" rel="stylesheet">
+{% endblock %}
+
+{% block herotitle %}
+Find similars
+{% endblock %}
+
+
+{% block content %}
+<div class="instructioncardcontainer d-flex wrapper">
+
+
+
+    <div class="molecule-drawer" , id="molecule-drawer"></div>
+    <div class="card-nohover mb-3" style="max-width: 30rem;">
+        <div class="card-body">
+            <h5 class="card-title">Find 3D similars</h5>
+            <p>3D similars can be used to explore SAR around active compounds. Additionally, a scaffold hop may
+                enable new chemistries, derivatisation schemes and drastically alter physicochemical and
+                pharmacokinetics.</p>
+            <p>See the about page to learn about the USRCAT 3D method employed.</p>
+            <p>Typically, researchers may use this service to find purchasable compounds predicted to make similar
+                interactions as their known actives.</p>
+        </div>
+    </div>
+</div>
+<div class="cardcontainer v-flex wrapper">
+    <div class="form-group">
+        <form action="" method="post" novalidate>
+            {{form.hidden_tag()}}
+            {{ form.smiles.label(for='molsmiles')}}
+            {{ form.smiles(class="form-control", id="molsmiles", placeholder="You can also paste smiles here") }}
+            {{ form.select.label }}
+            {{ form.select(class="form-select") }}
+            {{ form.submit(class="btn btn-secondary") }}
+            <button class="btn btn-primary" onclick="get3Dsimilars()">Find 3D similars</button>
+        </form>
+    </div>
+</div>
+<script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/sl_drawer.js')}}"></script>
+
+
+{% endblock %}

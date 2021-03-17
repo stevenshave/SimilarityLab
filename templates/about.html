@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+
+{% block herotitle %}
+About
+{% endblock %}
+
+
+{% block content %}
+
+<div class="wrapper">
+
+    <p>
+    <h3>Introduction</h3>
+    SimilarityLab enables the use of the molecular similarity predictions using USRCAT [1]. This rotation
+    invariant molecular similarity measure can be used to identify candidate molecules similar to a given query.
+    USRCAT is an extension of USR[2] and UFSRAT[3].
+    </p>
+    <p>The SimilarityLab website allows three things:
+    <ol>
+        <li>Discovery of commercially available similars.</li>
+        <li>Compound target prediction.</li>
+        <li>Compound sourcing/property inspection.</li>
+    </ol>
+    Further details of the above, and their operation can be found bellow. Source code can be found in the following
+    repository: <a href="https://github.com/stevenshave/SimilarityLab">https://github.com/stevenshave/SimilarityLab</a>
+
+    </p>
+    <p>
+    <h3>1. Discovery of commercially available similars.</h3>
+    We have often found collaborators want a quick way to explore SAR (Structural Activity Relationships) around a
+    compound they have of particular interest. This may be from their internal screens, or a compound from
+    literature. The application of USRCAT to the eMolecules database allows sourcing of similar compounds for
+    purchase. Internally, the eMolecules database is kept up-to-date, ensuring that compounds are purchable
+    (although even with frequent updating, we find some suppliers do not hold constant stock of their advertised
+    compounds). We periodically update SimilarityLab's eMolecules datasets, and hold 3D representations of
+    low-energy conformers for each molecule. These low energy conformers are generated using the protocol outlined
+    by Ebjner[4] (see repository for code listing). Conformers are used to pre-generate descriptors which are then
+    scored against the user supplied query molecule after conformer and descriptor generation.
+    The top 200 results are returned.
+    </p>
+    <p>
+    <h3>2. Compound target prediction.</h3>
+    Hits from phenotypic screening campaigns require target deconvolution, determining protein targets or pathways
+    likely to be perturbed. Utilising the same approach as 1 (Discovery of commercially available similars), the
+    USRCAT molecular similarity technique is applied to "active" molecules within the most recent release of
+    ChEMBL[5]. Active in this sense isdefined as having an IC50/KD of minimally 10 µM against protein targets.
+    The top 50 similar active molecules then have their activities against all protein targets counted. The protein
+    targets are then sorted by the number of times hit by this 50 compound similar list and this list of targets
+    returned to the user.
+    </p>
+    <p>
+    <h3>3. Compound sourcing/property inspection.</h3>
+    Compounds can be matched to their eMolecules ID, and fundamental predicted molecular properties returned.
+    </p>
+
+    <p>
+    <ul>
+        <h3>References</h3>
+        <li>[1] Schreyer, Adrian M., and Tom Blundell. "USRCAT: real-time ultrafast shape recognition with
+            pharmacophoric constraints." Journal of cheminformatics 4.1 (2012): 1-12.</li>
+        <li>[2] Ballester, Pedro J., and W. Graham Richards. "Ultrafast shape recognition to search compound
+            databases
+            for similar molecular shapes." Journal of computational chemistry 28.10 (2007): 1711-1723.</li>
+        <li>[3] Shave, Steven, et al. "UFSRAT: ultra-fast shape recognition with atom types–the discovery of novel
+            bioactive small molecular scaffolds for FKBP12 and 11βHSD1." PloS one 10.2 (2015): e0116570.</li>
+        <li>
+            [4] Ebejer, Jean-Paul, Garrett M. Morris, and Charlotte M. Deane. "Freely available conformer generation
+            methods: how good are they?." Journal of chemical information and modeling 52.5 (2012): 1146-1158.
+        </li>
+        <li>
+            [5] Gaulton, Anna, et al. "ChEMBL: a large-scale bioactivity database for drug discovery." Nucleic acids
+            research 40.D1 (2012): D1100-D1107.
+        </li>
+    </ul>
+    </p>
+
+</div>
+
+{% endblock %}

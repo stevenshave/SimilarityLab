@@ -1,0 +1,244 @@
+/* SCSS RGB */
+/* SCSS Gradient */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;800&display=swap");
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  margin: 1;
+  font-family: 'Montserrat';
+  background-color: #EFEFEF;
+  color: black;
+  padding-bottom: 4em;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-wrapper {
+  background-size: cover;
+}
+
+.hero-wrapper h1 {
+  text-align: left;
+  position: relative;
+  color: #EFEFEF;
+  font-size: 3em;
+  font-family: "Arial";
+}
+
+.hero-wrapper h2 {
+  text-align: left;
+  position: relative;
+  color: white;
+  font-size: 2em;
+}
+
+.hero-wrapper h2::before {
+  content: '';
+  position: absolute;
+  height: 5px;
+  width: 30px;
+  background: #ffffff;
+  top: -.3em;
+}
+
+.hero-wrapper .subtitle {
+  text-align: left;
+  position: relative;
+  color: white;
+  font-size: 1.2em;
+}
+
+.hero-wrapper .wrapper {
+  padding: 1.5em 1.5em 0.2em;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-wrapper header {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+
+.hero-wrapper header .logo {
+  font-weight: bold;
+}
+
+.hero-wrapper header ul {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.hero-wrapper header ul li a {
+  padding: 0 .6em;
+}
+
+.hero-wrapper header a {
+  color: white;
+  text-decoration: none;
+}
+
+.hero-wrapper .hero-content {
+  margin: 4em 0 0em;
+  color: white;
+}
+
+.wrapper {
+  padding: 1.5em 1.5em 0.2em;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  color: #524137;
+}
+
+.card a:link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card a:visited {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card .card-title {
+  text-decoration: underline;
+}
+
+.instructioncard {
+  background-color: #d4e09b;
+  width: 500em;
+}
+
+.instructioncard :hover {
+  color: white;
+}
+
+.card-nohover {
+  background-color: #d4e09b;
+  color: black;
+}
+
+.card-1 {
+  background-color: #d4e09b;
+}
+
+.card-1 :hover {
+  color: white;
+}
+
+.card-2 {
+  background-color: #9cb380;
+}
+
+.card-2 :hover {
+  color: white;
+}
+
+.card-3 {
+  background-color: #94a89a;
+}
+
+.card-3 :hover {
+  color: white;
+}
+
+.molecule-drawer {
+  background-color: blanchedalmond;
+}
+
+.cardcontainer {
+  -webkit-box-flex: content;
+      -ms-flex: content;
+          flex: content;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.instructioncardcontainer {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex: content;
+      -ms-flex: content;
+          flex: content;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -ms-flex-pack: distribute;
+      justify-content: space-around;
+}
+
+.use-smiles-instead a {
+  text-decoration: none;
+  color: black;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #352d2d;
+  color: white;
+  text-align: right;
+}
+
+.footer a {
+  color: white;
+}
+
+.footer .wrapper {
+  margin: 0;
+}
+
+.footer p {
+  margin: 0;
+}
+
+@media (min-width: 650px) {
+  body {
+    font-size: 18px;
+  }
+  .cardontainer {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+  }
+}
+
+@media (min-width: 750px) {
+  .cardcontainer {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -webkit-box-align: stretch;
+        -ms-flex-align: stretch;
+            align-items: stretch;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+  }
+}
+/*# sourceMappingURL=main.css.map */

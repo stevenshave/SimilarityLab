@@ -1,0 +1,223 @@
+// Colours from https://coolors.co/524137-d4e09b-9cb380-94a89a-0081af
+
+/* SCSS RGB */
+$dark-liver-horses: rgba(82, 65, 55, 1);
+
+$yellow-green-crayola: rgba(212, 224, 155, 1);
+$olivine: rgba(156, 179, 128, 1);
+$morning-blue: rgba(148, 168, 154, 1);
+
+$cg-blue: rgba(0, 129, 175, 1);
+
+/* SCSS Gradient */
+$gradient-top: linear-gradient(0deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-right: linear-gradient(90deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-bottom: linear-gradient(180deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-left: linear-gradient(270deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-top-right: linear-gradient(45deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-bottom-right: linear-gradient(135deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-top-left: linear-gradient(225deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-bottom-left: linear-gradient(315deg, #524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+$gradient-radial: radial-gradient(#524137ff, #ffeddfff, #c5d86dff, #afe0ceff, #208aaeff);
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;800&display=swap');
+* {
+    box-sizing: border-box;
+}
+
+
+
+body{
+    margin: 1;
+    font-family:'Montserrat';
+    background-color: #EFEFEF;
+    color: black;
+    padding-bottom: 4em;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.hero-wrapper{
+    // background: url("../images/levi-midnight-8KvHQzpHyKQ-unsplash.jpg");
+    background-size: cover;
+    h1{
+        text-align: left;
+        position: relative;
+        color: #EFEFEF;
+        font-size: 3em;
+        font-family: "Arial";
+    }
+    h2{
+        text-align: left;
+        position: relative;
+        color: white;
+        font-size: 2em;
+    }
+    h2::before{
+        content:'';
+        position:absolute;
+        height:5px;
+        width:30px;
+        background: #ffffff;
+        top: -.3em;
+    }
+    .subtitle{
+        text-align: left;
+        position: relative;
+        color: white;
+        font-size: 1.2em;
+        
+    }
+    .wrapper{
+        padding: 1.5em 1.5em 0.2em;
+        max-width: 1200px;
+        margin: 0 auto;
+        
+    }
+   
+    header{
+        display: flex;
+        justify-content: space-between;
+        .logo{
+            font-weight: bold;
+            
+        }
+        ul{
+            display: flex;
+            li a{
+                padding: 0 .6em;
+            }
+        }
+        a{
+            color:white;
+            text-decoration: none;
+        }
+    
+    }
+    .hero-content{
+        margin: 4em 0 0em;
+        color: white;
+    }
+}
+.wrapper{
+    padding: 1.5em 1.5em 0.2em;
+    max-width: 1200px;
+
+    margin: 0 auto;
+}
+
+.card{
+    a:link{text-decoration: none;color: inherit;}
+    color: $dark-liver-horses;
+    a:visited{text-decoration: none;color: inherit;}
+    .card-title{
+    text-decoration: underline;
+}}
+.instructioncard{
+    background-color: $yellow-green-crayola;
+    width: 500em;
+    :hover{color: white;}
+
+}
+
+.card-nohover{
+    background-color: $yellow-green-crayola;
+    color: black;
+}
+
+
+.card-1{
+    background-color: $yellow-green-crayola;
+    :hover{color: white;}
+
+}
+.card-2{
+    background-color: $olivine;
+    :hover{color: white;}
+
+}
+.card-3{
+    background-color: $morning-blue;
+    :hover{ color: white;}
+
+}
+.molecule-drawer{
+    background-color: blanchedalmond;
+}
+
+.cardcontainer{
+    flex: content;
+    flex-direction: column;
+    align-items:center;
+}
+
+.instructioncardcontainer{
+    display: flex;
+    flex: content;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.use-smiles-instead{
+    a{text-decoration: none;color:black}
+}
+
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: rgb(53, 45, 45);
+    color: white;
+    text-align: right;
+    a{
+        color: white;
+    }
+    .wrapper{
+        margin: 0;
+    }
+    p{
+        margin: 0;
+    }
+}
+
+// .footer {
+//     position: fixed;
+//     left: 0;
+//     bottom: 0;
+//     width: 100%;
+//     background-color: rgb(53, 45, 45);
+//     color: white;
+//     text-align: right;
+//     a{
+//         color: white;
+//     }
+//     .wrapper{
+//         margin: 0;
+//     }
+//     p{
+//         margin: 0;
+//     }
+// }
+
+@media (min-width: 650px) {
+    body{
+        font-size: 18px;
+    }
+   .cardontainer{flex-direction: row;}
+    
+}
+@media (min-width: 750px) {
+    .cardcontainer{
+        flex-direction: row;
+        align-items:stretch;
+        justify-content: space-between;
+    }
+    
+
+
+}

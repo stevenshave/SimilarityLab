@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block herotitle %}
+Easy molecular similarity
+{% endblock %}
+
+{% block herosubtitle %}
+For SAR exploration, target prediction
+{% endblock %}
+
+{% block content %}
+<div class="cardcontainer d-flex wrapper">
+
+    <div class="card card-2 mb-3" style="max-width: 18rem;">
+        <a href="find_similars.html">
+            <div class="card-body">
+                <h5 class="card-title">Find similars</h5>
+                <p class="card-text">This provides an easy way to put together a small library exploring SAR. </p>
+            </div>
+        </a>
+    </div>
+
+
+
+
+
+    <div class="card card-3 mb-3" style="max-width: 18rem;">
+        <a href="predict_targets.html">
+            <div class="card-body">
+                <h5 class="card-title">Predict targets</h5>
+                <p class="card-text">Using similarity to known actives, we can predict target activities for a given
+                    compound.</p>
+            </div>
+        </a>
+    </div>
+
+
+    <div class="card card-1 mb-3" style="max-width: 18rem;">
+        <a href="explore_compound.html">
+            <div class="card-body">
+                <h5 class="card-title">Explore a compound</h5>
+                <p class="card-text">Find commercial suppliers and explore predicted properties</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}
