@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block herotitle %}
+Message
+{% endblock %}
+{% block content %}
+<div class="wrapper">
+    <p>
+    <h3>{{ heading }}</h3>
+    {{ message|safe }}
+    </p>
+
+</div>
+{% endblock %}

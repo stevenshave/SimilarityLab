@@ -1,6 +1,6 @@
 function createResultsTable() {
 
-    tableHeadings = ["2D/SMILES", "USRCAT Score", "eMolecule ID", "MW"]
+    tableHeadings = ["2D/SMILES", "USRCAT Score", "Morgan score", "eMolecule ID", "MW"]
     myTable = document.getElementById("resultsTable")
 
     //Generate the head
