@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
 {% block herotitle %}
-Similars
+Similars <a href="download_similars.csv?molid={{ mol_inchi_and_dbid }}"><button class="btn btn-primary downloadbutton" style="float: right;">Download results as CSV file</button></a>
 {% endblock %}
 {% block content %}
 <script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
 <script src="{{url_for('static', filename='js/sl_drawer.js')}}"></script> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    
     <div class="wrapper">
         <table id="resultsTable"></table>
     </div>
@@ -19,9 +22,6 @@ Similars
     <script>
         var moleculeData = [
         {{ moldata|safe }}
-        //    ["CC(C)Cc1ccc(cc1)[C@@H](C)C(=O)O", 0.9, "12345", "206.285"],
-        //    ["O=C(O)Cc1ccccc1Nc2c(Cl)cccc2Cl", 0.82, "54321", "296.15"],
-        //    ["O=P(O)(O)OC[C@H]3O[C@@H](n2cnc1c(ncnc12)N)[C@H](O)[C@@H]3O", 0.3,"54321", "347.22"],
         ];
 
         let smilesDrawerOptions = { "width": 300, "height": 200 };

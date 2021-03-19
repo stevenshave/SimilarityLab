@@ -1,5 +1,5 @@
 """
-Generate USRCAT binary file for  SDF
+Generate USRCAT binary file and accompanying SMILES file for SimilarityLab
 
 By Steven Shave - stevenshave@gmail.com
 USRCAT is a 3D orientation and translation invariant 3D molecular similarity
@@ -8,11 +8,14 @@ the creation of UFSRAT, which was then published first by Schreyer & Blundell
 (Schreyer, A.M., Blundell, T. USRCAT: real-time ultrafast shape recognition
 with pharmacophoric constraints. J Cheminform 4, 27 (2012).
 https://doi.org/10.1186/1758-2946-4-27). adding a new atom type of 
-"ring atoms" - in-line with the CREDO atom type.
+ring atoms - in-line with the CREDO atom type.
 USRCAT is now integrated into RDKit.
 This code makes it a bit easier to use in a production environment.
+Note, the indexes written to the binary indicating SMILES line positions are
+not zero-indexed. 1 is the first line.
 
-The binary writer produces a binary file containing the following 
+The binary writer produces a binary file and SMILES lookup for the binary
+entries, as used by the SimilarityLab molecular similarity platform.
 """
 import struct
 import argparse
@@ -49,7 +52,8 @@ def usrcat_write_binary(sdf_file_path: Path, gzip_output_binary:bool=True):
             if mol.GetNumHeavyAtoms()>2:
                 num_good_mols+=1
                 usrcat_descriptos=GetUSRCAT(mol)
-                struct.pack_into(usrcat_binary_struct_format_string, pos_and_desc_bytes,0, mol_position, *usrcat_descriptos)
+                struct.pack_into(usrcat_binary_struct_format_string, pos_and_desc_bytes,0, num_good_mols, *usrcat_descriptos)
+                # Note we use num_good mols, this means that the first line is #1, not 0 - the smiles lines are not zero-indexed.
                 output_binary.write(pos_and_desc_bytes)
                 output_smiles_index.write(Chem.MolToSmiles(mol)+" "+mol.GetProp("_Name")+"\n")
                 bar.update(sdf_reader.started_reading_at)
