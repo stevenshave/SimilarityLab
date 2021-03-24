@@ -7,3 +7,6 @@ class FindSimilarsForm(FlaskForm):
     select=SelectField('Choose a dataset to query', choices=[])
     submit=SubmitField('Find 3D similars')
 
+class PredictTargetsForm(FlaskForm):
+    smiles=StringField('SMILES', validators=[DataRequired()])
+    submit=SubmitField('Predict targets')

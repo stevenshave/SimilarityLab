@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block herotitle %}
+Predicted targets <a href="download_predicted_targets.csv?molid={{ mol_inchi_and_dbid }}"><button class="btn btn-primary downloadbutton" style="float: right;">Download results as CSV file</button></a>
+{% endblock %}
+{% block content %}
+<script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/sl_drawer.js')}}"></script> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    
+    <div class="wrapper">
+        <table id="resultsTable"></table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+
+    <script src="{{url_for('static', filename='js/show_predicted_targets.js')}}"></script>
+
+    <script>
+        var moleculeData = [
+        //[1, "CDK2", 14, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        //    [2, "CDK9", 12, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        //    [3, "PKNB", 10, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        {{ moldata|safe }}
+        ];
+
+        let smilesDrawerOptions = { "width": 300, "height": 200 };
+        let smilesDrawer = new SmilesDrawer.Drawer(smilesDrawerOptions);
+        createPredictedTargetsTable();
+    </script>
+
+   
+   
+   {% endblock %}

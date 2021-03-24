@@ -99,7 +99,7 @@ def find_similars():
         inchi_key=Chem.inchi.MolToInchiKey(mol)
         query_mol_identifier=inchi_key+"_"+form.select.data
         if mol is None:
-            return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
+            return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
         usrcat_descriptors=GetUSRCAT(mol)
     
         database_binary_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][int(form.select.data)][1]+".sdf.usrcatsl.bin")
@@ -113,6 +113,7 @@ def find_similars():
         with open(Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".info"), "w") as infofile:
             infofile.write(f"{query_mol_identifier},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
+        print("Going to call GET SIMILAR MOLECULES")
         get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, str(database_binary_path), str(database_smiles_path), int(form.select.data)], countdown=1)
         return render_template("message.html", heading="Finding similars", message="The database is currently being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~26M eMolecules can take up to 2 hrs and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+inchi_key+"_"+form.select.data+"'>Click here to check status</a>")
 
@@ -121,9 +122,44 @@ def find_similars():
             print(err, fieldName)
     return render_template("find_similars.html", form=form)
 
-@app.route('/predict_targets.html')
+@app.route('/predict_targets.html',  methods=['GET', 'POST'])
 def predict_targets():
-    return render_template("predict_targets.html")
+    form=PredictTargetsForm()
+
+    if form.validate_on_submit():
+        # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python
+        # Get requesting IP:
+        client_ip=None
+        if request.environ.get('HTTP_X_FORWARDED_FOR') is None:client_ip=request.environ['REMOTE_ADDR']
+        else:client_ip=request.environ['HTTP_X_FORWARDED_FOR'] # if behind a proxy
+        smiles_std=standardise_smiles_remove_salts(form.smiles.data)
+        mol=smiles_to_3dmol(smiles_std)
+        if mol is None:
+            return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
+        if mol.GetNumHeavyAtoms()<3:
+            return render_template("message.html", heading="Molecule too small", message="Molecule is too small, please query at least 3 heavy atoms.")
+            
+        inchi_key=Chem.inchi.MolToInchiKey(mol)
+        usrcat_descriptors=GetUSRCAT(mol)
+    
+        # Check if a cached version exists before firing off a new request. If it does, then just show it.
+        if (Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info")).exists():
+            with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info"),"a") as infofile:
+                infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
+            return redirect(url_for("show_predicted_targets.html")+"?mol="+inchi_key)
+        with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info"), "w") as infofile:
+            infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
+        # Not found, so we make a request
+        get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI'])], countdown=1)
+        return render_template("message.html", heading="Finding similars", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~26M eMolecules can take up to 2 hrs and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+inchi_key+"_"+form.select.data+"'>Click here to check status</a>")
+
+    for fieldName, errorMessages in form.errors.items():
+        for err in errorMessages:
+            print(err, fieldName)
+    return render_template("predict_targets.html", form=form)
+
+
+
 
 @app.route('/explore_compound.html')
 def explore_compound():
@@ -131,6 +167,8 @@ def explore_compound():
 
 
 
+
+from subprocess import Popen, PIPE
 
 
 
@@ -146,49 +184,83 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
         database_smiles_path (str): Smiles file path - same as above, must be a string.
         database_id (int): Int representing database ID, used to cache results against specific databases
     """    
-    NUM_TO_KEEP=200
     print("Worker running for "+ query_smiles)
     mol=Chem.MolFromSmiles(query_smiles)
     query_mol_identifier=Chem.inchi.MolToInchiKey(mol)+"_"+str(database_id)
 
-    usrcat_binary_file=open(database_binary_path, "rb")
-    struct_size_in_bytes=struct.calcsize(usrcat_binary_struct_format_string)
-    usrcat_binary_file.seek(0, io.SEEK_END)
-    binary_file_size = usrcat_binary_file.tell()
-    usrcat_binary_file.seek(0)
-    num_mols_in_binary_file=binary_file_size//struct_size_in_bytes
 
+    # CPP program bellow called for speed of processing
+    ###################################################################################
+    # Build the command line -    //Arguments must be 
+    # 0: Executable
+    # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
+    # 2: Number of best to keep
+    # 3-63: USRCAT descriptors of query
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP'])]
+    for i in range(60):
+        command_line.append(str(query_descriptors[i]))
+    process = Popen(command_line, stdout=PIPE)
+    output, err = process.communicate()
+    exit_code = process.wait()
+    lines=output.decode("utf-8").splitlines()
 
-    keepn = KeepNHighest(NUM_TO_KEEP)
-    for molcounter in range(num_mols_in_binary_file):
-        pos_and_desc_bytes=usrcat_binary_file.read(struct_size_in_bytes)
-        descriptors=struct.unpack_from(usrcat_binary_struct_format_string, pos_and_desc_bytes,0)
-        smiles_line_number=descriptors[0]
-        usrcat_score = GetUSRScore(query_descriptors, descriptors[1:])
-        keepn.insert(smiles_line_number, usrcat_score)
-    best_scores, best_smiles_line_numbers = keepn.get_best()
-    linecounter=1
-    best_smiles_line_numbers_set=set(best_smiles_line_numbers)
-    smiles_dict={}
-    with open(database_smiles_path) as smiles_file:
-        line=smiles_file.readline()
-        while line:
-            if linecounter in best_smiles_line_numbers_set:
-                smiles_dict[linecounter]=line.rstrip()
-            line=smiles_file.readline()
-            linecounter+=1
     with open(Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".csv"),"w") as outfile:
-        for i, smiles_line_number in enumerate(best_smiles_line_numbers):
-            candidate_smiles, candidate_title=smiles_dict[smiles_line_number].split(" ")
-
+        for line in lines:
+            stripped_line=line.strip()
+            candidate_smiles, title_comma_score=stripped_line.split(" ")
+            candidate_title, candidate_score = title_comma_score.split(",")
+            candidate_score=float(candidate_score)
             candidate_mol=Chem.MolFromSmiles(candidate_smiles)
-            candate_score=best_scores[i]
             candidate_morgan_score=DiceSimilarity(GetMorganFingerprint(candidate_mol,2),GetMorganFingerprint(mol,2))
             mw=MolWt(candidate_mol)
-            outfile.write(f'{candidate_smiles},{round(candate_score,3)},{round(candidate_morgan_score,3)},{candidate_title.replace("_1","")},{round(mw,3)}\n')
-    print("Done")
-    
+            outfile.write(f'{candidate_smiles},{round(candidate_score,3)},{round(candidate_morgan_score,3)},{candidate_title.replace("_1","")},{round(mw,3)}\n')
     print("Worker done")
+
+@celery_client.task
+def get_predicted_targets(query_descriptors:list, query_smiles:str, database_binary_path:str, database_smiles_path:str):
+    """Celery task that reads database binary files comparing query descriptors
+
+    Args:
+        query_descriptors (list): USRCAT descriptors of query.
+        query_smiles (str): SMILES representation of the query molecule.
+        database_binary_path (str): Binary file path - must be string, not path, as Path is non-serialisable.
+        database_smiles_path (str): Smiles file path - same as above, must be a string.
+        database_id (int): Int representing database ID, used to cache results against specific databases
+    """    
+    
+    print("Worker running for "+ query_smiles)
+    mol=Chem.MolFromSmiles(query_smiles)
+    query_mol_identifier=Chem.inchi.MolToInchiKey(mol)+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
+
+
+    # CPP program bellow called for speed of processing
+    ###################################################################################
+    # Build the command line -    //Arguments must be 
+    # 0: Executable
+    # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
+    # 2: Number of best to keep
+    # 3-63: USRCAT descriptors of query
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP'])]
+    for i in range(60):
+        command_line.append(str(query_descriptors[i]))
+    process = Popen(command_line, stdout=PIPE)
+    output, err = process.communicate()
+    exit_code = process.wait()
+    lines=output.decode("utf-8").splitlines()
+
+    with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(query_mol_identifier+".csv"),"w") as outfile:
+        for line in lines:
+            print(line)
+            stripped_line=line.strip()
+            candidate_smiles, title_comma_score=stripped_line.split(" ")
+            candidate_title, candidate_score = title_comma_score.split(",")
+            candidate_score=float(candidate_score)
+            candidate_mol=Chem.MolFromSmiles(candidate_smiles)
+            candidate_morgan_score=DiceSimilarity(GetMorganFingerprint(candidate_mol,2),GetMorganFingerprint(mol,2))
+            mw=MolWt(candidate_mol)
+            outfile.write(f'{candidate_smiles},{round(candidate_score,3)},{round(candidate_morgan_score,3)},{candidate_title.replace("_1","")},{round(mw,3)}\n')
+    print("Worker done")
+
 
 
 

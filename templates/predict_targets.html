@@ -25,10 +25,12 @@ Predict targets
 </div>
 <div class="cardcontainer v-flex wrapper">
     <div class="form-group">
-        <label for="molsmiles">SMILES (Automatically generated from above 2D)</label>
-        <input type="text" class="form-control" id="molsmiles" placeholder="You can also paste smiles here">
-
-        <button class="btn btn-primary" onclick="predictTargets()">Predict targets</button>
+        <form action="" method="post">
+            {{form.hidden_tag()}}
+            {{ form.smiles.label(for='molsmiles')}}
+            {{ form.smiles(class="form-control", id="molsmiles", placeholder="You can also paste smiles here") }}
+            {{ form.submit(class="btn btn-secondary") }}
+        </form>
     </div>
 </div>
 

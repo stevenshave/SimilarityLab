@@ -9,4 +9,12 @@ class Config(object):
     DATASETS=[
         [0, "10ktestset", "Small set of 10k druglike molecules (QED scores > 0.9)"],
     ]
-    QUERY_SIMILARS_DIRECTORY=Path("/home/ubuntu/data/queries")
+    QUERY_SIMILARS_DIRECTORY=Path("/home/ubuntu/data/queries/similars/")
+    QUERY_TARGETS_DIRECTORY=Path("/home/ubuntu/data/queries/targets/")
+
+    CHEMBL_VERSION_NUMBER=28
+    CHEMBL_USRCATSL_ROOT=Path("/home/ubuntu/data/chembl28_actives.sdf.usrcatsl")
+    CHEMBL_USRCATSL_BIN=Path(str(CHEMBL_USRCATSL_ROOT)+".bin")
+    CHEMBL_USRCATSL_SMI=Path(str(CHEMBL_USRCATSL_ROOT)+".smi")
+
+    NUM_TO_KEEP=200

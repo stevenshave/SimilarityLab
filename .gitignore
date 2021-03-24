@@ -2,6 +2,8 @@
 .vscode
 static/js/kekule.min.js
 *.pyc
+utils/usrcat_binary_reader_similarity_lab
+*.o
 =======
 .vscode
 static/js/kekule.min.js
