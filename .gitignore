@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 .vscode
 static/js/kekule.min.js
 *.pyc
 utils/usrcat_binary_reader_similarity_lab
 *.o
-=======
+tmp_test.py
 .vscode
 static/js/kekule.min.js
 *.pyc
@@ -138,4 +137,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
->>>>>>> 0a149fe64214b3c61ff04d8d0355a541262eca50

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block herotitle %}
-Predicted targets <a href="download_predicted_targets.csv?molid={{ mol_inchi_and_dbid }}"><button class="btn btn-primary downloadbutton" style="float: right;">Download results as CSV file</button></a>
+Predicted targets <a href="download_predicted_targets.csv?molid={{ mol_inchi_and_chemblversion }}"><button class="btn btn-primary downloadbutton" style="float: right;">Download results as CSV file</button></a>
 {% endblock %}
 {% block content %}
 <script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
@@ -9,7 +9,7 @@ Predicted targets <a href="download_predicted_targets.csv?molid={{ mol_inchi_and
     
     
     <div class="wrapper">
-        <table id="resultsTable"></table>
+        <table class="table table-striped" id="resultsTable"></table>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
@@ -26,8 +26,6 @@ Predicted targets <a href="download_predicted_targets.csv?molid={{ mol_inchi_and
         {{ moldata|safe }}
         ];
 
-        let smilesDrawerOptions = { "width": 300, "height": 200 };
-        let smilesDrawer = new SmilesDrawer.Drawer(smilesDrawerOptions);
         createPredictedTargetsTable();
     </script>
 

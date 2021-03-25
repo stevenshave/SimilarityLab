@@ -10,7 +10,7 @@ from celery import Celery
 from flask import Flask, render_template, url_for, send_from_directory, redirect, send_file
 from forms import *
 from rdkit import Chem
-
+import json
 from utils.rdkonf6 import smiles_to_3dmol
 from rdkit.Chem.rdMolDescriptors import GetUSRScore, GetUSRCAT
 from rdkit.Chem.Descriptors import MolWt
@@ -39,7 +39,7 @@ def index():
 def download_similars():
     mol_inchi_and_dbid=request.args.get('molid')
     
-    print("Here")
+    print("Here", mol_inchi_and_dbid)
     # Check people are not trying to access other files
     if len(mol_inchi_and_dbid.split("_")[0])!=27 or "/" in mol_inchi_and_dbid or "." in mol_inchi_and_dbid or "~" in mol_inchi_and_dbid:
         return redirect("/")
@@ -49,20 +49,33 @@ def download_similars():
     #                           mol_inchi_and_dbid+".csv", mimetype='text/csv', attachment_filename="similars.csv")
 
 
+@app.route("/download_predicted_targets.csv", methods=["GET"])
+def download_predicted_targets():
+    mol_inchi_and_chemblversion=request.args.get('molid')
+    
+    print("Here")
+    # Check people are not trying to access other files
+    if len(mol_inchi_and_chemblversion.split("_")[0])!=27 or "/" in mol_inchi_and_chemblversion or "." in mol_inchi_and_chemblversion or "~" in mol_inchi_and_chemblversion:
+        return redirect("/")
+    
+    return send_file(os.path.join(app.config['QUERY_TARGETS_DIRECTORY'], mol_inchi_and_chemblversion+".csv"), as_attachment=True,attachment_filename="predicted_targets_"+mol_inchi_and_chemblversion+".csv")
+    #return send_from_directory(app.config['QUERY_SIMILARS_DIRECTORY'],
+    #                           mol_inchi_and_dbid+".csv", mimetype='text/csv', attachment_filename="similars.csv")
+
 @app.route("/show_similars.html", methods=["GET"])
 def show_similars():
     
     #Parse the get request for the mol argument
     mol_inchi_and_dbid=request.args.get('mol')
     
-    # No molecule inchi and DB ID supplied
-    if mol_inchi_and_dbid is None:
+    # Make sure it looks ok, providing some sanitation from people just requesting random files are rendered/returned
+    if mol_inchi_and_dbid is None or len(mol_inchi_and_dbid.split("_")[0])!=27 or "." in mol_inchi_and_dbid or "/" in mol_inchi_and_dbid:
         return redirect("/")
 
     # Inchi and DB supplied- check if 1) Submitted? 2) Finished?
     if (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(mol_inchi_and_dbid+".info")).exists():
         if not (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(mol_inchi_and_dbid+".csv")).exists():
-            return render_template("message.html", heading="Not yet complete", message="Job is submitted, please check back later.")
+            return render_template("message.html", heading="Not yet complete", message="Job is submitted, please check back later, or refresh in a while.")
         # Must be complete, CSV exists, extract lines and pass to rendering of show_similars
         # Has  to look like this:
         #    ["CC(C)Cc1ccc(cc1)[C@@H](C)C(=O)O", 0.9, 0.6,"12345", "206.285"],
@@ -78,6 +91,42 @@ def show_similars():
         return render_template("show_similars.html", moldata=moldat, mol_inchi_and_dbid=mol_inchi_and_dbid )
     else:
         return render_template("message.html", heading="Not found", message="It seems that job was never submitted.")
+
+
+@app.route("/show_predicted_targets.html", methods=["GET"])
+def show_predicted_targets():
+    #Parse the get request for the mol argument
+    mol_inchi_and_chemblversion=request.args.get('mol')
+
+    # Make sure it looks ok, providing some sanitation from people just requesting random files are rendered/returned
+    if mol_inchi_and_chemblversion is None or len(mol_inchi_and_chemblversion.split("_")[0])!=27 or "." in mol_inchi_and_chemblversion or "/" in mol_inchi_and_chemblversion:
+        return redirect("/")
+
+    # Inchi and DB supplied- check if 1) Submitted? 2) Finished?
+    if (Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info")).exists():
+        if not (Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".csv")).exists():
+            return render_template("message.html", heading="Not yet complete", message="Job is submitted, please check back later, or refesh in a while.")
+        # Must be complete, CSV exists, extract lines and pass to rendering of show_similars
+        # Has  to look like this:
+        #Name, counts, hit by
+        #"CDK2", 14, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        #"CDK9", 12, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        #"PKNB", 10, "CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLX, CHEMBLY, CHEMBLZ, CHEMBLXXXX"],
+        #
+
+        moldat=""
+        for line in open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".csv")).readlines()[1:]:
+            end_of_pref_name_comma_pos=line.find("\",")+1
+            prefname=line[0:end_of_pref_name_comma_pos]
+            end_of_counts_comma_pos=line.find(",", end_of_pref_name_comma_pos+1)
+            hit_counts=int(line[end_of_pref_name_comma_pos+1:end_of_counts_comma_pos])
+            active_mols=line[end_of_counts_comma_pos+1:].rstrip()
+            moldat+=f"[{prefname},{hit_counts},{active_mols}],\n"
+        return render_template("show_predicted_targets.html", moldata=moldat, mol_inchi_and_chemblversion=mol_inchi_and_chemblversion )
+    else:
+        return render_template("message.html", heading="Not found", message="It seems that job was never submitted.")
+
+
 
 
 @app.route('/find_similars.html',  methods=['GET', 'POST'])
@@ -140,18 +189,19 @@ def predict_targets():
             return render_template("message.html", heading="Molecule too small", message="Molecule is too small, please query at least 3 heavy atoms.")
             
         inchi_key=Chem.inchi.MolToInchiKey(mol)
+        mol_inchi_and_chemblversion=inchi_key+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
         usrcat_descriptors=GetUSRCAT(mol)
     
         # Check if a cached version exists before firing off a new request. If it does, then just show it.
-        if (Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info")).exists():
-            with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info"),"a") as infofile:
+        if (Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info")).exists():
+            with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info"),"a") as infofile:
                 infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
-            return redirect(url_for("show_predicted_targets.html")+"?mol="+inchi_key)
-        with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(inchi_key+".info"), "w") as infofile:
+            return redirect(url_for("show_predicted_targets")+"?mol="+mol_inchi_and_chemblversion)
+        with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info"), "w") as infofile:
             infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
         get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI'])], countdown=1)
-        return render_template("message.html", heading="Finding similars", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~26M eMolecules can take up to 2 hrs and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+inchi_key+"_"+form.select.data+"'>Click here to check status</a>")
+        return render_template("message.html", heading="Finding similars", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against ChEMBL can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_predicted_targets")+"?mol="+mol_inchi_and_chemblversion+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
         for err in errorMessages:
@@ -196,7 +246,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
     # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
     # 2: Number of best to keep
     # 3-63: USRCAT descriptors of query
-    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP'])]
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP_SIMILARS'])]
     for i in range(60):
         command_line.append(str(query_descriptors[i]))
     process = Popen(command_line, stdout=PIPE)
@@ -205,6 +255,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
     lines=output.decode("utf-8").splitlines()
 
     with open(Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".csv"),"w") as outfile:
+        outfile.write("Candidate SMILES,USRCAT Score,Morgan Score,eMolecules ID,MW\n")
         for line in lines:
             stripped_line=line.strip()
             candidate_smiles, title_comma_score=stripped_line.split(" ")
@@ -229,6 +280,13 @@ def get_predicted_targets(query_descriptors:list, query_smiles:str, database_bin
     """    
     
     print("Worker running for "+ query_smiles)
+
+    if app.config['CCHEMBLID_TO_TCHEMBLIDS'] is None:
+        app.config['CCHEMBLID_TO_TCHEMBLIDS']=json.load(open(app.config['CCHEMBLID_TO_TCHEMBLIDS_PATH']))
+    if app.config['TCHEMBLIDS_TO_PREFNAMES'] is None:
+        app.config['TCHEMBLIDS_TO_PREFNAMES']=json.load(open(app.config['TCHEMBLIDS_TO_PREFNAMES_PATH']))
+
+
     mol=Chem.MolFromSmiles(query_smiles)
     query_mol_identifier=Chem.inchi.MolToInchiKey(mol)+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
 
@@ -240,25 +298,39 @@ def get_predicted_targets(query_descriptors:list, query_smiles:str, database_bin
     # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
     # 2: Number of best to keep
     # 3-63: USRCAT descriptors of query
-    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP'])]
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP_TARGETS'])]
     for i in range(60):
         command_line.append(str(query_descriptors[i]))
     process = Popen(command_line, stdout=PIPE)
     output, err = process.communicate()
+    
+    
     exit_code = process.wait()
     lines=output.decode("utf-8").splitlines()
+    
 
     with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(query_mol_identifier+".csv"),"w") as outfile:
+        target_hit_counts={}
+        tcid_to_ccid={}
         for line in lines:
-            print(line)
             stripped_line=line.strip()
             candidate_smiles, title_comma_score=stripped_line.split(" ")
-            candidate_title, candidate_score = title_comma_score.split(",")
-            candidate_score=float(candidate_score)
-            candidate_mol=Chem.MolFromSmiles(candidate_smiles)
-            candidate_morgan_score=DiceSimilarity(GetMorganFingerprint(candidate_mol,2),GetMorganFingerprint(mol,2))
-            mw=MolWt(candidate_mol)
-            outfile.write(f'{candidate_smiles},{round(candidate_score,3)},{round(candidate_morgan_score,3)},{candidate_title.replace("_1","")},{round(mw,3)}\n')
+            candidate_titles_string, candidate_score = title_comma_score.split(",")
+            candidate_titles=candidate_titles_string.split(";")
+            tcids_hit=set()
+            for ccid in candidate_titles:
+                for tcid in app.config['CCHEMBLID_TO_TCHEMBLIDS'][ccid]:
+                    tcids_hit.add(tcid)
+                    if tcid not in tcid_to_ccid.keys():
+                        tcid_to_ccid[tcid]=[]
+                    tcid_to_ccid[tcid].append(ccid)
+            for tcid in tcids_hit:
+                if tcid not in target_hit_counts.keys():
+                    target_hit_counts[tcid]=0
+                target_hit_counts[tcid]+=1
+        outfile.write(f"\"Target\",\"Hit by N similars\",\"Known actives\"\n")
+        for k in sorted(target_hit_counts, key=lambda k: target_hit_counts[k], reverse=True):
+            outfile.write(f"\"{app.config['TCHEMBLIDS_TO_PREFNAMES'][k]}\",{target_hit_counts[k]},\"{', '.join(set(tcid_to_ccid[k]))}\"\n")
     print("Worker done")
 
 

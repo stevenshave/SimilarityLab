@@ -1,6 +1,6 @@
 function createPredictedTargetsTable() {
 
-    tableHeadings = ["Rank", "Target", "Hit count", "ChEMBL IDs of actives"]
+    tableHeadings = ["Target", "Hit count", "ChEMBL IDs of actives"]
     myTable = document.getElementById("resultsTable")
 
     //Generate the head
