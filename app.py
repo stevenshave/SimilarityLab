@@ -29,6 +29,10 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+@app.route('/about.html')
+def about():
+    return render_template("about.html")
+
 @app.route('/')
 @app.route('/index.html')
 def index():
@@ -75,7 +79,7 @@ def show_similars():
     # Inchi and DB supplied- check if 1) Submitted? 2) Finished?
     if (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(mol_inchi_and_dbid+".info")).exists():
         if not (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(mol_inchi_and_dbid+".csv")).exists():
-            return render_template("message.html", heading="Not yet complete", message="Job is submitted, please check back later, or refresh in a while.")
+            return render_template("message.html", heading="Not yet complete", message="Job is submitted, please check back later, refresh, or use/bookmark the link bellow: <br><a href='"+url_for("show_similars")+"?mol="+mol_inchi_and_dbid+"'>Click here to check status</a>")
         # Must be complete, CSV exists, extract lines and pass to rendering of show_similars
         # Has  to look like this:
         #    ["CC(C)Cc1ccc(cc1)[C@@H](C)C(=O)O", 0.9, 0.6,"12345", "206.285"],
@@ -87,7 +91,7 @@ def show_similars():
         moldat=""
         for line in open(Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(mol_inchi_and_dbid+".csv")).readlines()[1:]:
             smiles, usrcatscore, morganscore, id, mw=line.split(",")
-            moldat+=f"[\"{smiles}\",{usrcatscore},{morganscore},\"{id}\",{mw}],\n"
+            moldat+=f"[\"{smiles}\",{usrcatscore},{morganscore},\"{id.replace(';',' ')}\",{mw}],\n"
         return render_template("show_similars.html", moldata=moldat, mol_inchi_and_dbid=mol_inchi_and_dbid )
     else:
         return render_template("message.html", heading="Not found", message="It seems that job was never submitted.")
@@ -132,7 +136,7 @@ def show_predicted_targets():
 @app.route('/find_similars.html',  methods=['GET', 'POST'])
 def find_similars():
     form=FindSimilarsForm()
-    form.select.choices=[(ds[0], ds[2]) for ds in app.config["DATASETS"]]
+    form.select.choices=[(i, ds[2]) for i, ds in enumerate(app.config["DATASETS"])]
 
     if form.validate_on_submit():
         # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python
@@ -146,13 +150,13 @@ def find_similars():
             return render_template("message.html", heading="Molecule too small", message="The USRCAT molecular similarity technique requires molecules to be composed of at least 3 heavy atoms.")
             
         inchi_key=Chem.inchi.MolToInchiKey(mol)
-        query_mol_identifier=inchi_key+"_"+form.select.data
+        query_mol_identifier=inchi_key+"_"+str(app.config['DATASETS'][form.select.data][0])
         if mol is None:
             return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
         usrcat_descriptors=GetUSRCAT(mol)
     
-        database_binary_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][int(form.select.data)][1]+".sdf.usrcatsl.bin")
-        database_smiles_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][int(form.select.data)][1]+".sdf.usrcatsl.smi")
+        database_binary_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.bin")
+        database_smiles_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.smi")
         
         # Check if a cached version exists before firing off a new request. If it does, then just show it.
         if (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".info")).exists():
@@ -163,8 +167,8 @@ def find_similars():
             infofile.write(f"{query_mol_identifier},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
         print("Going to call GET SIMILAR MOLECULES")
-        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, str(database_binary_path), str(database_smiles_path), int(form.select.data)], countdown=1)
-        return render_template("message.html", heading="Finding similars", message="The database is currently being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~26M eMolecules can take up to 2 hrs and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+inchi_key+"_"+form.select.data+"'>Click here to check status</a>")
+        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, str(database_binary_path), str(database_smiles_path), app.config['DATASETS'][form.select.data][0]])
+        return render_template("message.html", heading="Finding similars", message="The database is currently being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~29 M eMolecules can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+query_mol_identifier+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
         for err in errorMessages:
@@ -211,9 +215,9 @@ def predict_targets():
 
 
 
-@app.route('/explore_compound.html')
-def explore_compound():
-    return render_template("explore_compound.html")
+@app.route('/tools.html')
+def tools():
+    return render_template("tools.html")
 
 
 
@@ -258,7 +262,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
         outfile.write("Candidate SMILES,USRCAT Score,Morgan Score,eMolecules ID,MW\n")
         for line in lines:
             stripped_line=line.strip()
-            candidate_smiles, title_comma_score=stripped_line.split(" ")
+            candidate_smiles, title_comma_score=stripped_line.split(" ", maxsplit=1)
             candidate_title, candidate_score = title_comma_score.split(",")
             candidate_score=float(candidate_score)
             candidate_mol=Chem.MolFromSmiles(candidate_smiles)

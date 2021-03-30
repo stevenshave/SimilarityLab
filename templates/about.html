@@ -16,11 +16,10 @@ About
     invariant molecular similarity measure can be used to identify candidate molecules similar to a given query.
     USRCAT is an extension of USR[2] and UFSRAT[3].
     </p>
-    <p>The SimilarityLab website allows three things:
+    <p>The SimilarityLab website allows two things:
     <ol>
         <li>Discovery of commercially available similars.</li>
         <li>Compound target prediction.</li>
-        <li>Compound sourcing/property inspection.</li>
     </ol>
     Further details of the above, and their operation can be found bellow. Source code can be found in the following
     repository: <a href="https://github.com/stevenshave/SimilarityLab">https://github.com/stevenshave/SimilarityLab</a>
@@ -40,20 +39,23 @@ About
     The top 200 results are returned.
     </p>
     <p>
+        The authors of SimilarityLab will always endevour to refresh the websites eMolecules version periodically.
+    </p>
+    <p>
     <h3>2. Compound target prediction.</h3>
     Hits from phenotypic screening campaigns require target deconvolution, determining protein targets or pathways
     likely to be perturbed. Utilising the same approach as 1 (Discovery of commercially available similars), the
     USRCAT molecular similarity technique is applied to "active" molecules within the most recent release of
     ChEMBL[5]. Active in this sense isdefined as having an IC50/KD of minimally 10 µM against protein targets.
-    The top 50 similar active molecules then have their activities against all protein targets counted. The protein
-    targets are then sorted by the number of times hit by this 50 compound similar list and this list of targets
+    The top 100 similar active molecules then have their activities against all protein targets counted. The protein
+    targets are then sorted by the number of times hit by this 100 compound similar list and this list of targets
     returned to the user.
     </p>
     <p>
-    <h3>3. Compound sourcing/property inspection.</h3>
-    Compounds can be matched to their eMolecules ID, and fundamental predicted molecular properties returned.
+        <h3>Funding</h3>
+        SimilarityLab was made possible by the Welcome Trust Institutional Strategic Support Fund and was developed by Dr. Steven Shave during his time in the Auer Lab at the University of Edinburgh. This site and associated code is available under open source compatible license and available from <a href="https://github.com/stevenshave/SimilarityLab">https://github.com/stevenshave/SimilarityLab</a>.
     </p>
-
+    
     <p>
     <ul>
         <h3>References</h3>

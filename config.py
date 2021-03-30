@@ -6,11 +6,14 @@ class Config(object):
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     #CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     DATASETS_DIRECTORY=Path("/home/ubuntu/data/")
+    # Datasets take as arguments: Unique ID, SDF filename prefix, Description
     DATASETS=[
-        [99, "10ktestset", "Small set of 10k druglike molecules (QED scores > 0.9)"],
-        [1, "eMolecules202103", "eMolecules-2021-03 (29,368,630 unique molecules)"],
-
+        [2, "eMolecules202103-qed-0.67", "eMolecules-2021-03 Druglike (QED>=0.67, 12,708,687 unique molecules)"],
+        [3, "eMolecules202103", "eMolecules-2021-03 (29,368,630 unique molecules)"],
+        [0, "10ktestset", "Small set of 10k druglike molecules (QED scores > 0.9)"],
+        [1, "selechem-fdaapproved", "FDA approved drugs from Selleckchem (2,238 unique molecules)"]
     ]
+    assert len(set([d[0] for d in DATASETS]))==len(DATASETS), "Not all dataset IDs unique"
     QUERY_SIMILARS_DIRECTORY=DATASETS_DIRECTORY/"queries/similars/"
     QUERY_TARGETS_DIRECTORY=DATASETS_DIRECTORY/"queries/targets/"
 
