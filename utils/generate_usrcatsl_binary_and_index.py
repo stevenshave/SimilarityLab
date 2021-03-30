@@ -30,7 +30,7 @@ from rdkit.Chem.rdMolDescriptors import GetUSRScore, GetUSRCAT
 import io
 
 
-def usrcat_write_binary(sdf_file_path: Path, gzip_output_binary:bool=True):
+def usrcat_write_binary(sdf_file_path: Path, gzip_output_binary:bool=False):
     assert sdf_file_path.exists(), "SDF file not found"
     binary_file_path=Path(str(sdf_file_path)+".usrcatsl.bin")
     if gzip_output_binary:
@@ -38,15 +38,21 @@ def usrcat_write_binary(sdf_file_path: Path, gzip_output_binary:bool=True):
     assert not Path(binary_file_path).exists(), "Output binary exists"
     output_binary=open_file_may_be_gzipped(binary_file_path, "wb")
     output_smiles_index=open_file_may_be_gzipped(Path(str(sdf_file_path)+".usrcatsl.smi"), "w")
-    sdf_reader=SDFReader_WithFilePos(sdf_file_path)
     bar = progressbar.ProgressBar(
-        prefix="Generating binary", max_value=sdf_reader.end_position
+        prefix="Generating binary"
     )
     pos_and_desc_bytes=bytearray(struct.calcsize(usrcat_binary_struct_format_string))
     num_gets=0
     num_good_mols=0
-    while sdf_reader.started_reading_at != sdf_reader.end_position:
-        mol, mol_position = sdf_reader.get()
+    sdf_reader=None
+    gz_compressed_file=None
+    if str(sdf_file_path).endswith(".gz"):
+        gz_compressed_file=gzip.open(str(sdf_file_path))
+        sdf_reader=Chem.ForwardSDMolSupplier(gz_compressed_file)
+    else:
+        sdf_reader=Chem.SDMolSupplier(str(sdf_file_path))
+    
+    for mol in sdf_reader:
         num_gets+=1
         if mol is not None:
             if mol.GetNumHeavyAtoms()>2:
@@ -56,8 +62,9 @@ def usrcat_write_binary(sdf_file_path: Path, gzip_output_binary:bool=True):
                 # Note we use num_good mols, this means that the first line is #1, not 0 - the smiles lines are not zero-indexed.
                 output_binary.write(pos_and_desc_bytes)
                 output_smiles_index.write(Chem.MolToSmiles(mol)+" "+mol.GetProp("_Name")+"\n")
-                bar.update(sdf_reader.started_reading_at)
-    bar.update(sdf_reader.end_position)
+            if num_good_mols%1000==0:
+                bar.update(num_gets)
+    bar.update(num_gets)
     output_binary.close()
     output_smiles_index.close()
     print("Num gets",num_gets)
