@@ -167,7 +167,7 @@ def find_similars():
             infofile.write(f"{query_mol_identifier},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
         print("Going to call GET SIMILAR MOLECULES")
-        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, str(database_binary_path), str(database_smiles_path), app.config['DATASETS'][form.select.data][0]])
+        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key, str(database_binary_path), str(database_smiles_path), app.config['DATASETS'][form.select.data][0]])
         return render_template("message.html", heading="Finding similars", message="The database is currently being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~29 M eMolecules can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+query_mol_identifier+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
@@ -204,8 +204,8 @@ def predict_targets():
         with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info"), "w") as infofile:
             infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
-        get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI'])], countdown=1)
-        return render_template("message.html", heading="Finding similars", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against ChEMBL can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_predicted_targets")+"?mol="+mol_inchi_and_chemblversion+"'>Click here to check status</a>")
+        get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key,str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI'])], countdown=1)
+        return render_template("message.html", heading="Assigning targets", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against ChEMBL can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_predicted_targets")+"?mol="+mol_inchi_and_chemblversion+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
         for err in errorMessages:
@@ -228,7 +228,7 @@ from subprocess import Popen, PIPE
 
 import time
 @celery_client.task
-def get_similar_molecules(query_descriptors:list, query_smiles:str, database_binary_path:str, database_smiles_path:str, database_id:int):
+def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str, database_id:int):
     """Celery task that reads database binary files comparing query descriptors
 
     Args:
@@ -240,7 +240,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
     """    
     print("Worker running for "+ query_smiles)
     mol=Chem.MolFromSmiles(query_smiles)
-    query_mol_identifier=Chem.inchi.MolToInchiKey(mol)+"_"+str(database_id)
+    query_mol_identifier=mol_inchi+"_"+str(database_id)
 
 
     # CPP program bellow called for speed of processing
@@ -272,7 +272,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, database_bin
     print("Worker done")
 
 @celery_client.task
-def get_predicted_targets(query_descriptors:list, query_smiles:str, database_binary_path:str, database_smiles_path:str):
+def get_predicted_targets(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str):
     """Celery task that reads database binary files comparing query descriptors
 
     Args:
@@ -292,7 +292,7 @@ def get_predicted_targets(query_descriptors:list, query_smiles:str, database_bin
 
 
     mol=Chem.MolFromSmiles(query_smiles)
-    query_mol_identifier=Chem.inchi.MolToInchiKey(mol)+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
+    query_mol_identifier=mol_inchi+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
 
 
     # CPP program bellow called for speed of processing
