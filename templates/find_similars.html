@@ -31,10 +31,10 @@ Find similars
     <div class="form-group">
         <form action="" method="post">
             {{form.hidden_tag()}}
-            {{ form.select.label }}
-            {{ form.select(class="form-select") }}
             {{ form.smiles.label(for='molsmiles')}}
             {{ form.smiles(class="form-control", id="molsmiles", placeholder="You can also paste smiles here") }}
+            {{ form.select.label }}
+            {{ form.select(class="form-select") }}
             {{ form.submit(class="btn btn-secondary") }}
         </form>
     </div>
