@@ -12,6 +12,7 @@ from forms import *
 from rdkit import Chem
 import json
 from utils.rdkonf6 import smiles_to_3dmol
+from utils.mrlogP_similaritylab import *
 from rdkit.Chem.rdMolDescriptors import GetUSRScore, GetUSRCAT
 from rdkit.Chem.Descriptors import MolWt
 
@@ -19,6 +20,7 @@ app=Flask(__name__)
 app.config.from_object(Config)
 print(app.config['SECRET_KEY'])
 
+mrlogp_model=MRLogPPredictor()
 
 # Celery queue client setup
 celery_client = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
@@ -32,6 +34,8 @@ def favicon():
 @app.route('/about.html')
 def about():
     return render_template("about.html")
+
+
 
 @app.route('/')
 @app.route('/index.html')
@@ -211,6 +215,45 @@ def predict_targets():
         for err in errorMessages:
             print(err, fieldName)
     return render_template("predict_targets.html", form=form)
+
+
+
+
+
+@app.route('/mrlogp',  methods=['GET', 'POST'])
+def mrlogp():
+    form=PredictLogP()
+
+    if form.validate_on_submit():
+        # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python
+        # Get requesting IP:
+        client_ip=None
+        if request.environ.get('HTTP_X_FORWARDED_FOR') is None:client_ip=request.environ['REMOTE_ADDR']
+        else:client_ip=request.environ['HTTP_X_FORWARDED_FOR'] # if behind a proxy
+        smiles_std=standardise_smiles_remove_salts(form.smiles.data)
+        mol=smiles_to_3dmol(smiles_std)
+        if mol is None:
+            return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
+        if mol.GetNumHeavyAtoms()<3:
+            return render_template("message.html", heading="Molecule too small", message="Molecule is too small, please query at least 3 heavy atoms.")
+            
+        inchi_key=Chem.inchi.MolToInchiKey(mol)
+        mol_inchi_and_logPtext=inchi_key+"_logP"
+        predicted_logP=mrlogp_model.predict_from_smiles(smiles_std)
+        return render_template("message.html", heading="MRlogP logP prediction", message=f"logP predicted to be {predicted_logP:.3f}</p><p><a href=\"https://similaritylab.bio.ed.ac.uk/mrlogp\"> Predict another logP </a>")
+        
+    for fieldName, errorMessages in form.errors.items():
+        for err in errorMessages:
+            print(err, fieldName)
+    return render_template("predict_logP.html", form=form)
+
+
+
+
+
+
+
+
 
 
 

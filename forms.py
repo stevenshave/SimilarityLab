@@ -10,3 +10,7 @@ class FindSimilarsForm(FlaskForm):
 class PredictTargetsForm(FlaskForm):
     smiles=StringField('SMILES', validators=[DataRequired()])
     submit=SubmitField('Predict targets')
+
+class PredictLogP(FlaskForm):
+    smiles=StringField('SMILES', validators=[DataRequired()])
+    submit=SubmitField('Predict logP')

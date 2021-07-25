@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block additionalcss %}
+<link href="{{url_for('static', filename='css/kekule.css')}}" rel="stylesheet">
+{% endblock %}
+
+{% block herotitle %}
+MRlogP
+{% endblock %}
+
+{% block content %}
+<div class="instructioncardcontainer d-flex wrapper">
+
+
+
+    <div class="molecule-drawer" , id="molecule-drawer"></div>
+    <div class="card-nohover mb-3" style="max-width: 30rem;">
+        <div class="card-body">
+            <h5 class="card-title">Predict logP using MRlogP</h5>
+            <p>Draw a molecule to the left or paste SMILES in the box bellow to predict logP using MRlogP.</p>
+            <p>Link to publication will appear here once accepted.</p>
+        </div>
+    </div>
+</div>
+<div class="cardcontainer v-flex wrapper">
+    <div class="form-group">
+        <form action="" method="post">
+            {{form.hidden_tag()}}
+            {{ form.smiles.label(for='molsmiles')}}
+            {{ form.smiles(class="form-control", id="molsmiles", placeholder="You can also paste smiles here") }}
+            {{ form.submit(class="btn btn-secondary") }}
+        </form>
+    </div>
+</div>
+
+
+
+<script src="{{url_for('static', filename='js/kekule.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/sl_drawer.js')}}"></script>
+
+
+{% endblock %}
