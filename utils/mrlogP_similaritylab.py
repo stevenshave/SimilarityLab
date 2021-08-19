@@ -41,7 +41,7 @@ class MRLogPPredictor():
         
         self.scaler = pickle.load(open(scaler_pickle,'rb'))
 
-    def predict_from_smiles(self, smiles, model_hdf5="/home/ubuntu/similarity_lab/utils/model-tl-18.hdf5"):
+    def predict_from_smiles(self, smiles, model_hdf5="/home/ubuntu/similarity_lab/utils/model-tl-87_endTraining.hdf5"):
         if " " not in smiles:
             smiles=smiles+" querymol"
         smiles, title=smiles.split()
