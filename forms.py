@@ -10,7 +10,9 @@ class FindSimilarsForm(FlaskForm):
 
 class PredictTargetsForm(FlaskForm):
     smiles=StringField('SMILES', validators=[DataRequired()])
+    select_n_to_keep=SelectField('Numer of similars to use (default 100)', choices=[], coerce=int)
     submit=SubmitField('Predict targets')
+
 
 class PredictLogP(FlaskForm):
     smiles=StringField('SMILES', validators=[DataRequired()])

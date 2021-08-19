@@ -186,6 +186,8 @@ def find_similars():
 @app.route('/predict_targets.html',  methods=['GET', 'POST'])
 def predict_targets():
     form=PredictTargetsForm()
+    form.select_n_to_keep.choices=[(n, n) for n in app.config["NUM_TO_KEEP_CHOICES"]]
+    form.select_n_to_keep.default=200
 
     if form.validate_on_submit():
         # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python
@@ -194,6 +196,7 @@ def predict_targets():
         if request.environ.get('HTTP_X_FORWARDED_FOR') is None:client_ip=request.environ['REMOTE_ADDR']
         else:client_ip=request.environ['HTTP_X_FORWARDED_FOR'] # if behind a proxy
         smiles_std=standardise_smiles_remove_salts(form.smiles.data)
+        num_to_keep=int(form.select_n_to_keep.data)
         mol=smiles_to_3dmol(smiles_std)
         if mol is None:
             return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
@@ -201,7 +204,7 @@ def predict_targets():
             return render_template("message.html", heading="Molecule too small", message="Molecule is too small, please query at least 3 heavy atoms.")
             
         inchi_key=Chem.inchi.MolToInchiKey(mol)
-        mol_inchi_and_chemblversion=inchi_key+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
+        mol_inchi_and_chemblversion=inchi_key+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])+"_"+str(num_to_keep)
         usrcat_descriptors=GetUSRCAT(mol)
     
         # Check if a cached version exists before firing off a new request. If it does, then just show it.
@@ -212,7 +215,7 @@ def predict_targets():
         with open(Path(app.config['QUERY_TARGETS_DIRECTORY'])/(mol_inchi_and_chemblversion+".info"), "w") as infofile:
             infofile.write(f"{inchi_key},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
-        get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key,str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI'])], countdown=1)
+        get_predicted_targets.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key,str(app.config['CHEMBL_USRCATSL_BIN']), str(app.config['CHEMBL_USRCATSL_SMI']), num_to_keep], countdown=1)
         return render_template("message.html", heading="Assigning targets", message="ChEMBL is being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against ChEMBL can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_predicted_targets")+"?mol="+mol_inchi_and_chemblversion+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
@@ -319,7 +322,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:st
     print("Worker done")
 
 @celery_client.task
-def get_predicted_targets(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str):
+def get_predicted_targets(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str, num_to_keep:int):
     """Celery task that reads database binary files comparing query descriptors
 
     Args:
@@ -339,7 +342,7 @@ def get_predicted_targets(query_descriptors:list, query_smiles:str, mol_inchi:st
 
 
     mol=Chem.MolFromSmiles(query_smiles)
-    query_mol_identifier=mol_inchi+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])
+    query_mol_identifier=mol_inchi+"_"+str(app.config['CHEMBL_VERSION_NUMBER'])+"_"+str(num_to_keep)
 
 
     # CPP program bellow called for speed of processing
@@ -349,7 +352,7 @@ def get_predicted_targets(query_descriptors:list, query_smiles:str, mol_inchi:st
     # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
     # 2: Number of best to keep
     # 3-63: USRCAT descriptors of query
-    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP_TARGETS'])]
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(num_to_keep)]
     for i in range(60):
         command_line.append(str(query_descriptors[i]))
     process = Popen(command_line, stdout=PIPE)
