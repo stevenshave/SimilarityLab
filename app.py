@@ -141,6 +141,8 @@ def show_predicted_targets():
 def find_similars():
     form=FindSimilarsForm()
     form.select.choices=[(i, ds[2]) for i, ds in enumerate(app.config["DATASETS"])]
+    form.select_n_to_keep.choices=[(n, n) for n in app.config["NUM_TO_KEEP_CHOICES"]]
+
 
     if form.validate_on_submit():
         # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python
@@ -161,6 +163,8 @@ def find_similars():
     
         database_binary_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.bin")
         database_smiles_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.smi")
+
+        num_to_keep=int(form.select_n_to_keep.data)
         
         # Check if a cached version exists before firing off a new request. If it does, then just show it.
         if (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".info")).exists():
@@ -171,7 +175,7 @@ def find_similars():
             infofile.write(f"{query_mol_identifier},{smiles_std},{client_ip},{datetime.datetime.now()}\n")
         # Not found, so we make a request
         print("Going to call GET SIMILAR MOLECULES")
-        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key, str(database_binary_path), str(database_smiles_path), app.config['DATASETS'][form.select.data][0]])
+        get_similar_molecules.apply_async(args=[usrcat_descriptors,  smiles_std, inchi_key, str(database_binary_path), str(database_smiles_path), app.config['DATASETS'][form.select.data][0], num_to_keep])
         return render_template("message.html", heading="Finding similars", message="The database is currently being queried for similars to your uploaded molecule ("+smiles_std+").<br>Please check the link bellow periodically to view your results. Searches against the entire ~29 M eMolecules can take up to a minute and even longer when the server is under heavy load. <br><a href='"+url_for("show_similars")+"?mol="+query_mol_identifier+"'>Click here to check status</a>")
 
     for fieldName, errorMessages in form.errors.items():
@@ -271,7 +275,7 @@ from subprocess import Popen, PIPE
 
 import time
 @celery_client.task
-def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str, database_id:int):
+def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:str, database_binary_path:str, database_smiles_path:str, database_id:int, num_to_keep:int):
     """Celery task that reads database binary files comparing query descriptors
 
     Args:
@@ -293,7 +297,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:st
     # 1: Binary file location without last .bin extension, so that .bin and .smi file locations can be derived
     # 2: Number of best to keep
     # 3-63: USRCAT descriptors of query
-    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(app.config['NUM_TO_KEEP_SIMILARS'])]
+    command_line=["/home/ubuntu/similarity_lab/utils/usrcat_binary_reader_similarity_lab", database_binary_path.replace(".bin",""), str(num_to_keep)]
     for i in range(60):
         command_line.append(str(query_descriptors[i]))
     process = Popen(command_line, stdout=PIPE)

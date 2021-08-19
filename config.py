@@ -13,6 +13,9 @@ class Config(object):
         [0, "10ktestset", "Small set of 10k druglike molecules (QED scores > 0.9)"],
         [1, "selechem-fdaapproved", "FDA approved drugs from Selleckchem (2,238 unique molecules)"]
     ]
+
+    NUM_TO_KEEP_CHOICES=[100,200,500,1000,2000]
+
     assert len(set([d[0] for d in DATASETS]))==len(DATASETS), "Not all dataset IDs unique"
     QUERY_SIMILARS_DIRECTORY=DATASETS_DIRECTORY/"queries/similars/"
     QUERY_TARGETS_DIRECTORY=DATASETS_DIRECTORY/"queries/targets/"
