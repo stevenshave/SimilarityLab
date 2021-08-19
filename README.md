@@ -1,7 +1,10 @@
 # [SimilarityLab](https://similaritylab.bio.ed.ac.uk)
 SimilarityLab; a website for running molecular similarity and target prediction.
 ---
+
 [https://similaritylab.bio.ed.ac.uk](https://similaritylab.bio.ed.ac.uk)
+
+Link to publication will be added upon acceptance.
 
 
 ![SimilarityLab](https://raw.githubusercontent.com/stevenshave/similaritylab/master/SimilarityLab.png "SimilarityLab")
