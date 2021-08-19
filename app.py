@@ -187,7 +187,6 @@ def find_similars():
 def predict_targets():
     form=PredictTargetsForm()
     form.select_n_to_keep.choices=[(n, n) for n in app.config["NUM_TO_KEEP_CHOICES"]]
-    form.select_n_to_keep.default=200
 
     if form.validate_on_submit():
         # Correct IP courtesy of https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors-using-flask-for-python

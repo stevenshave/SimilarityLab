@@ -26,8 +26,6 @@ class Config(object):
     assert(CHEMBL_USRCATSL_BIN.exists()),"Missing bin file"
     CHEMBL_USRCATSL_SMI=Path(str(CHEMBL_USRCATSL_ROOT)+".smi")
     assert (CHEMBL_USRCATSL_SMI), "Missing smiles file"
-    NUM_TO_KEEP_SIMILARS=200
-    NUM_TO_KEEP_TARGETS=100
 
     CCHEMBLID_TO_TCHEMBLIDS_PATH=DATASETS_DIRECTORY/"cchemblid_to_tchemblids.json"
     assert CCHEMBLID_TO_TCHEMBLIDS_PATH.exists(), "Missing cchemblid_to_tchemblids.json"
