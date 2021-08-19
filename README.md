@@ -20,3 +20,12 @@ This can be achieved through cloning of this repository and using the requiremen
 
 SimilarityLab requires local copies of databases to operate on, their location may be assigned within config.py. All databases must have their USRCAT descriptors pregenerated for speed of processing within the deployed site using the usrcat_binary_reader_similarity_lab program in the utils directrory.
 
+# License
+[MIT License](https://github.com/stevenshave/similaritylab/blob/master/LICENSE)
+
+
+# Authors and acknowledgements
+SimilarityLab was written by Steven Shave. Both Steven Shave and Manfred Auer would like to acknowledge financial support from the Wellcome Trust (ISSF3-SimilarityLab), the Scottish Universities Life Sciences Alliance (SULSA- http://www.sulsa.ac.uk), and the Medical Research Council (MRC- www.mrc.ac.uk, J54359) Strategic Grant.
+
+
+Please get in contact for custom solutions, integration to existing workflows and training.
