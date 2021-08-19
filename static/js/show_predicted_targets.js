@@ -17,11 +17,17 @@ function createPredictedTargetsTable() {
 
     moleculeData.forEach(function (moldata, moliterator) {
         let row = myTable.insertRow();
-        moldata.forEach(function (d, di) {
-            let cell = row.insertCell();
-            let text = document.createTextNode(d);
-                cell.appendChild(text);
-            
-        });
+        let cell0 = row.insertCell();
+        let cell1 = row.insertCell();
+        let cell2 = row.insertCell();
+        cell0.innerHTML="<a href='https://www.ebi.ac.uk/chembl/g/#search_results/targets/query="+moldata[0]+"'>"+moldata[0]+"</a>";
+        cell1.innerHTML=moldata[1];
+        cell2.innerHTML ="";
+        chemblids=moldata[2];
+        
+        const myArr = chemblids.split(", ");
+        for (var i = 0; i < myArr.length; i++)
+            cell2.innerHTML = cell2.innerHTML+"<a href='https://www.ebi.ac.uk/chembl/compound_report_card/"+myArr[i]+"'>"+myArr[i]+"</a>, ";
+        
     });
 }

@@ -173,6 +173,16 @@ ul {
           align-items: center;
 }
 
+td a:link {
+  text-decoration: none;
+  color: inherit;
+}
+
+td a:visited {
+  text-decoration: none;
+  color: inherit;
+}
+
 .instructioncardcontainer {
   display: -webkit-box;
   display: -ms-flexbox;
