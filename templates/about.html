@@ -34,9 +34,12 @@ About
     (although even with frequent updating, we find some suppliers do not hold constant stock of their advertised
     compounds). We periodically update SimilarityLab's eMolecules datasets, and hold 3D representations of
     low-energy conformers for each molecule. These low energy conformers are generated using the protocol outlined
-    by Ebjner[4] (see repository for code listing). Conformers are used to pre-generate descriptors which are then
-    scored against the user supplied query molecule after conformer and descriptor generation.
-    The top N similars are returned to the user, where N is definable at job definition.
+    by Ebjner[4] (see repository for code listing). For cheminformatics tasks requiring querying against specific
+    small molecule conformations, we advise users seek other tools and experts capable of running the analysis,
+    which should be simple to do using code in the accompanying SimilarityLab source repository, or simply using
+    RDKit.  Conformers are used to pre-generate descriptors which are then scored against the user supplied query
+    molecule after conformer and descriptor generation. The top N similars are returned to the user, where N is
+    definable at job definition.
     </p>
     <p>
         The authors of SimilarityLab will always endevour to refresh the websites eMolecules version periodically.
