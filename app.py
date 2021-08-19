@@ -152,11 +152,12 @@ def find_similars():
         else:client_ip=request.environ['HTTP_X_FORWARDED_FOR'] # if behind a proxy
         smiles_std=standardise_smiles_remove_salts(form.smiles.data)
         mol=smiles_to_3dmol(smiles_std)
+        num_to_keep=int(form.select_n_to_keep.data)
         if mol.GetNumHeavyAtoms()<3:
             return render_template("message.html", heading="Molecule too small", message="The USRCAT molecular similarity technique requires molecules to be composed of at least 3 heavy atoms.")
             
         inchi_key=Chem.inchi.MolToInchiKey(mol)
-        query_mol_identifier=inchi_key+"_"+str(app.config['DATASETS'][form.select.data][0])
+        query_mol_identifier=inchi_key+"_"+str(app.config['DATASETS'][form.select.data][0])+"_"+str(num_to_keep)
         if mol is None:
             return render_template("message.html", heading="3D generation info", message="3D generation failed. This could be beacuse it is too big, too flexible, the submitted SMILES is invalid, or contains metals that SimilarityLab (using the 3D generation method detailed in the about section) is unable to find parameters for. Allowed atom types are: C, N, O, S, F, Cl, Br, I, B, P, Si, and H.")
         usrcat_descriptors=GetUSRCAT(mol)
@@ -164,7 +165,6 @@ def find_similars():
         database_binary_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.bin")
         database_smiles_path=app.config['DATASETS_DIRECTORY']/Path(app.config['DATASETS'][form.select.data][1]+".sdf.usrcatsl.smi")
 
-        num_to_keep=int(form.select_n_to_keep.data)
         
         # Check if a cached version exists before firing off a new request. If it does, then just show it.
         if (Path(app.config['QUERY_SIMILARS_DIRECTORY'])/(query_mol_identifier+".info")).exists():
@@ -287,7 +287,7 @@ def get_similar_molecules(query_descriptors:list, query_smiles:str, mol_inchi:st
     """    
     print("Worker running for "+ query_smiles)
     mol=Chem.MolFromSmiles(query_smiles)
-    query_mol_identifier=mol_inchi+"_"+str(database_id)
+    query_mol_identifier=mol_inchi+"_"+str(database_id)+"_"+str(num_to_keep)
 
 
     # CPP program bellow called for speed of processing
