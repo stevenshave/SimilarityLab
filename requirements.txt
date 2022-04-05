@@ -130,9 +130,9 @@ sqlite=3.36.0=hc218d9a_0
 tensorboard=2.2.2=pypi_0
 tensorboard-data-server=0.6.1=pypi_0
 tensorboard-plugin-wit=1.8.0=pypi_0
-tensorflow=2.3.4
-tensorflow-base=2.2.0=mkl_py37hd506778_0
-tensorflow-estimator=2.2.0=pypi_0
+tensorflow>=2.4.0
+tensorflow-base>=2.4.0
+tensorflow-estimator>=2.4.0
 termcolor=1.1.0=pypi_0
 tk=8.6.10=hbc83047_0
 typing_extensions=3.10.0.0=pyh06a4308_0
